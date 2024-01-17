@@ -14,7 +14,7 @@ public class CrosConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**") // Adjust the path as needed
                         .allowedOrigins("http://localhost:4200")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE")
+                        .allowedMethods("GET", "POST", "PATCH", "DELETE")
                         .allowCredentials(true);
             }
         };
