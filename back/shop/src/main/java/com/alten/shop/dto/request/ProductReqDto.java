@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ProductReqDto {
-    @NotNull(message = "Code cannot be null")
+      @NotNull(message = "Code cannot be null")
     @NotEmpty(message = "Code cannot be empty")
     @NotBlank(message = "Code cannot be blank")
     private String code;
@@ -18,7 +18,6 @@ public class ProductReqDto {
     @NotBlank(message = "Name cannot be blank")
     private String name;
 
-    @NotNull(message = "Description cannot be null")
     @NotEmpty(message = "Description cannot be empty")
     @NotBlank(message = "Description cannot be blank")
     private String description;
@@ -29,7 +28,6 @@ public class ProductReqDto {
     @PositiveOrZero(message = "Quantity must be a non-negative number")
     private int quantity;
 
-    @NotNull(message = "Inventory cannot be null")
     @NotEmpty(message = "Inventory cannot be empty")
     @NotBlank(message = "Inventory status cannot be blank")
     private String inventoryStatus;
