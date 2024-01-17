@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -38,11 +39,11 @@ public class ProductController {
         return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<ProductResDto> updateProduct(
             @PathVariable Long id,
-            @RequestBody @Valid ProductReqDto requestDTO) {
-        ProductResDto updatedProduct = productService.updateProduct(id, requestDTO);
+            @RequestBody @Valid Map<String, Object> fields) throws IllegalAccessException {
+        ProductResDto updatedProduct = productService.updateProduct(id, fields);
         return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
     }
 
