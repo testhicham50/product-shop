@@ -3,15 +3,20 @@ package com.alten.shop.service.Impl;
 import com.alten.shop.dto.request.ProductReqDto;
 import com.alten.shop.dto.response.ProductResDto;
 import com.alten.shop.entities.Product;
+import com.alten.shop.exceptions.EntityAlreadyExistException;
+import com.alten.shop.exceptions.FieldNotFoundException;
 import com.alten.shop.mappers.request.ProductReqMapper;
 import com.alten.shop.mappers.response.ProductResMapper;
 import com.alten.shop.repository.ProductRepository;
 import com.alten.shop.service.ProductService;
+import com.alten.shop.utils.ProductUpdateUtil;
+import com.alten.shop.validators.ObjectValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,6 +26,8 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductReqMapper productReqMapper;
     private final ProductResMapper productResMapper;
+    private final ObjectValidator<ProductReqDto> productValidator;
+   // private final ModelMapper modelMapper;
 
     /**
      * Retrieve all products.
@@ -53,35 +60,42 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public ProductResDto createProduct(ProductReqDto requestDto) {
+        productValidator.validate(requestDto);
+
+        productRepository.findByCode(requestDto.getCode()).ifPresent(product -> {
+            throw new EntityAlreadyExistException("Product already exists");
+        });
+
         Product product = productReqMapper.toEntity(requestDto);
         Product savedProduct = productRepository.save(product);
         return productResMapper.toDto(savedProduct);
     }
 
     /**
-     * Update an existing product.
-     * @param id The ID of the product to update.
-     * @param requestDto ProductReqDto containing updated information.
-     * @return ProductResDto representing the updated product.
-     * @throws EntityNotFoundException if the product with the specified ID is not found.
+     * Updates a Product entity with the specified non-null fields from the provided map.
+     *
+     * @param id     The identifier of the product to be updated.
+     * @param fields A map containing field names and their corresponding values for update.
+     * @return A ProductResDto representing the updated product.
+     * @throws EntityNotFoundException If the product with the specified ID is not found.
+     * @throws FieldNotFoundException  If any of the provided fields are not valid for the Product entity.
+     * @throws IllegalAccessException   If there is an issue accessing the fields during the update process.
      */
-    @Override
-    public ProductResDto updateProduct(Long id, ProductReqDto requestDto) {
+    public ProductResDto updateProduct(Long id, Map<String, Object> fields) throws IllegalAccessException {
+        // Retrieve the existing product or throw an exception if not found
         Product existingProduct = getProductOrThrowNotFound(id);
 
-        // Update the fields of the existing product with new values from the request DTO
-        existingProduct.setCode(requestDto.getCode());
-        existingProduct.setName(requestDto.getName());
-        existingProduct.setDescription(requestDto.getDescription());
-        existingProduct.setPrice(requestDto.getPrice());
-        existingProduct.setQuantity(requestDto.getQuantity());
-        existingProduct.setInventoryStatus(requestDto.getInventoryStatus());
-        existingProduct.setCategory(requestDto.getCategory());
-        existingProduct.setImage(requestDto.getImage());
+        // Validate that the provided fields are valid for the Product entity
+        ProductUpdateUtil.validateFields(fields);
 
-        // Save the updated product
-        Product updatedProduct = productRepository.save(existingProduct);
-        return productResMapper.toDto(updatedProduct);
+        // Update non-null fields using custom method
+        ProductUpdateUtil.updateNonNullFields(existingProduct, fields);
+
+        // Validate the mapped ProductReqDto
+        productValidator.validate(productReqMapper.toDto(existingProduct));
+
+        // Save the updated product to the database and map it to a ProductResDto
+        return productResMapper.toDto(productRepository.save(existingProduct));
     }
 
     /**
