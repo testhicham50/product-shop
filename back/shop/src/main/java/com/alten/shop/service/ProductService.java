@@ -9,6 +9,6 @@ public interface ProductService {
     List<ProductResDto> getAllProducts();
     ProductResDto getProductById(Long id);
     ProductResDto createProduct(ProductReqDto requestDto);
-    ProductResDto updateProduct(Long id, ProductReqDto requestDto);
+    ProductResDto updateProduct(Long id, Map<String, Object> fields) throws IllegalAccessException;
     void deleteProduct(Long id);
 }
